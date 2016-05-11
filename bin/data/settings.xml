@@ -1,0 +1,6 @@
+<group>
+	<colorThreshold>40.15</colorThreshold>
+	<minContourArea>5.495</minContourArea>
+	<maxContourArea>100</maxContourArea>
+<group/>
+</group>

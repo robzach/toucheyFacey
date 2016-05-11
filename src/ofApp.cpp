@@ -1,11 +1,8 @@
+// 5/4/16 4:28pm added gui sliders, tweaked a bit for presentation
+// 5/5/16 5:27pm added ROI in center of image
+
 #include "ofApp.h"
 
-/*
-    If you are struggling to get the device to connect ( especially Windows Users )
-    please look at the ReadMe: in addons/ofxKinect/README.md
-*/
-
-//--------------------------------------------------------------
 void ofApp::setup() {
 	ofSetLogLevel(OF_LOG_VERBOSE);
 	
@@ -13,42 +10,45 @@ void ofApp::setup() {
 	kinect.setRegistration(true);
     
 	kinect.init(); //false by default
-	//kinect.init(true); // shows infrared instead of RGB video image
-	//kinect.init(false, false); // disable video image (faster fps)
+//	kinect.init(true); // shows infrared instead of RGB video image
 	
 	kinect.open();		// opens first available kinect
-	//kinect.open(1);	// open a kinect by id, starting with 0 (sorted by serial # lexicographically))
-	//kinect.open("A00362A08602047A");	// open a kinect using it's unique serial #
-    
-	// print the intrinsic IR sensor values
-    
-	if(kinect.isConnected()) {
-		ofLogNotice() << "sensor-emitter dist: " << kinect.getSensorEmitterDistance() << "cm";
-		ofLogNotice() << "sensor-camera dist:  " << kinect.getSensorCameraDistance() << "cm";
-		ofLogNotice() << "zero plane pixel size: " << kinect.getZeroPlanePixelSize() << "mm";
-		ofLogNotice() << "zero plane dist: " << kinect.getZeroPlaneDistance() << "mm";
-	}
     
 	colorImg.allocate(kinect.width, kinect.height);
     cout << "kinect.width=" << kinect.width <<", kinect.height= " << kinect.height << endl;
-	grayImage.allocate(kinect.width, kinect.height);
-	grayThreshNear.allocate(kinect.width, kinect.height);
-	grayThreshFar.allocate(kinect.width, kinect.height);
-	
-	nearThreshold = 230;
-	farThreshold = 70;
-	bThreshWithOpenCV = true;
+    
+    fbo.allocate(640, 480, GL_RGBA);
+    fbo.begin();
+    ofClear(255,255,255, 0);
+    fbo.end();
+    
+    fingerThresh.clear(); // saw some weird noise crop up (likely stray data) on loading the image, so clearing it first
+    fingerThresh.allocate(640,480);
+    dilatedThresh.allocate(640,480);
+
+    faceMesh.setupIndicesAuto(); // vertices should index themselves automatically
 	
 	ofSetFrameRate(60);
 	
 	// zero the tilt on startup
 //	angle = 0;
 //	kinect.setCameraTiltAngle(angle);
-	
-	// start from the front
-	bDrawPointCloud = false;
     
-    ofBackground(100, 100, 100);
+    ofBackground(100);
+    
+    angle = kinect.getCurrentCameraTiltAngle();
+    cout << "Kinect angle is " << angle << endl;
+    
+    ping.load("pingSound.wav");
+    
+    sender.setup(HOST, PORT);
+    
+    gui.setup();
+    gui.add(colorThreshold.setup("colorThreshold", 50, 10, 100));
+    gui.add(minContourArea.setup("minContourArea", 10, 1, 30));
+    gui.add(maxContourArea.setup("maxContourArea", 100, 11, 200));
+
+
 
 }
 
@@ -57,293 +57,246 @@ void ofApp::update() {
 	
 	
 	kinect.update();
+    
+    fbo.begin();
+    ofClear(255,255,255, 0); // writes over previous vertices so they don't leave trails forever when drawing
+    easyCam.begin();
+    drawFaceCloud();
+    easyCam.end();
+    fbo.end();
 	
 	// there is a new frame and we are connected
 	if(kinect.isFrameNew()) {
-		
-		// load grayscale depth image from the kinect source
-        ofPixels pixels = kinect.getDepthPixels() ;
         
-		grayImage.setFromPixels(pixels);
-		
-		// we do two thresholds - one for the far plane and one for the near plane
-		// we then do a cvAnd to get the pixels which are a union of the two thresholds
-		if(bThreshWithOpenCV) {
-			grayThreshNear = grayImage;
-			grayThreshFar = grayImage;
-			grayThreshNear.threshold(nearThreshold, true);
-			grayThreshFar.threshold(farThreshold);
-			cvAnd(grayThreshNear.getCvImage(), grayThreshFar.getCvImage(), grayImage.getCvImage(), NULL);
-		} else {
-			
-			// or we do it ourselves - show people how they can work with the pixels
-			ofPixels & pix = grayImage.getPixels();
-			int numPixels = pix.size();
-			for(int i = 0; i < numPixels; i++) {
-				if(pix[i] < nearThreshold && pix[i] > farThreshold) {
-					pix[i] = 255;
-				} else {
-					pix[i] = 0;
-				}
-			}
-		}
-		
-		// update the cv images
-		grayImage.flagImageChanged();
-		
-		// find contours which are between the size of 20 pixels and 1/3 the w*h pixels.
-		// also, find holes is set to true so we will get interior contours as well....
-//		contourFinder.findContours(grayImage, 10, (kinect.width*kinect.height)/2, 20, false);
-	}
-    
-    
-    // RIGHT HERE IS A GREAT PLACE TO ADD THE PROCESS THAT IDENTIFIES THE CLOSEST COLOR MATCH PIXEL
-    
-    /* 
-     
-     as an intermediate: use the current mouse position (easy to do) as the "finger" location
-     so later the finger tracking can be added in
-     
-     */
-    
+        if(buildThresh){
+            
+            unsigned char *colorData = kinect.getPixels().getData(); // gather pixel values
+            unsigned char *dstArray = fingerThresh.getPixels().getData(); // buffer to load thresholded image into
+            
+            int nPixels = kinect.width * kinect.height;
+            
+            for (int i=0; i<nPixels; i++){
+                
+                int byteIndex = i*3;
+                unsigned char r = colorData [byteIndex + 0];
+                unsigned char g = colorData [byteIndex + 1];
+                unsigned char b = colorData [byteIndex + 2];
+                
+                int dr = r - rTarget;
+                int dg = g - gTarget;
+                int db = b - bTarget;
+                float dh = sqrt(dr*dr + dg*dg + db*db);
+                
+                unsigned char dstValue = (dh < colorThreshold) ? 255 : 0;
+                dstArray[i] = dstValue;
+            }
+            
+            fingerThresh.updateTexture();
+            
+            dilatedThresh = fingerThresh;
+            dilatedThresh.dilate_3x3();
+            
+//            ofxCvSetImageROI(dilatedThresh, cvRect(213, 160, 213, 160)); // trying to set ROI but didn't work
+            
+            fingerThresh.setROI(roiMat);
+            dilatedThresh.setROI(roiMat);
+            
+            contourFinder.findContours(dilatedThresh, minContourArea, maxContourArea, 1, FALSE);
+            
+            
+        }
+    }
 }
 
 //--------------------------------------------------------------
 void ofApp::draw() {
-	
-	ofSetColor(255, 255, 255);
-	
-	if(bDrawPointCloud) {
-		easyCam.begin();
-		drawPointCloud();
-		easyCam.end();
-	}
+    ofSetColor(255);
     
-    // WOULD BE NICE FOR THIS TO BE IN ITS OWN WINDOW BUT I CAN'T FIGURE OUT HOW TO DO THAT
-    else if(bDrawFaceCloud){
-        easyCam.begin();
-        drawFaceCloud();
-        easyCam.end();
+    kinect.draw(0, 0, 640, 480); // main RGB image
+    kinect.drawDepth(0, 0, 640*.25, 480*.25); // depth image, rendered smaller
+    dilatedThresh.draw(0, 480*.25, 640*.25, 480*.25); // dialated image of fingerThresh
+    
+    for (int i = 0; i < contourFinder.nBlobs; i++){
+        ofTranslate(640/3, 480/3); // needed because ROI shifts data points
+        contourFinder.blobs[i].draw();
+        ofSetColor(255,0,0);
+        ofFill();
+        ofDrawCircle(contourFinder.blobs[i].boundingRect.getCenter().x, contourFinder.blobs[i].boundingRect.getCenter().y, 5);
+        ofTranslate(-640/3, -480/3); // unshift back
     }
     
-    else {
-		// draw from the live kinect
-		kinect.draw(0, 0, 640, 480); // main RGB image
-        kinect.drawDepth(640, 0, 200, 150); // depth image, rendered smaller to the side
-		
-//		grayImage.draw(10, 320, 400, 300);
-//		contourFinder.draw(10, 320, 400, 300);
-		
-	}
-	
-	// draw instructions
-	stringstream reportStream;
+    ofSetColor(255);
+    ofNoFill();
+//    ofDrawRectangle(640/3, 480/3, 640/3, 640/3); // center rectangle
+    ofDrawRectangle(roiMat);
+    if(paintColor) ofDrawEllipse (xOfPixelWithClosestColor, yOfPixelWithClosestColor, 10,10);
     
-    {
-//    if(kinect.hasAccelControl()) {
-//        reportStream << "accel is: " << ofToString(kinect.getMksAccel().x, 2) << " / "
-//        << ofToString(kinect.getMksAccel().y, 2) << " / "
-//        << ofToString(kinect.getMksAccel().z, 2) << endl;
-//    } else {
-//        reportStream << "Note: this is a newer Xbox Kinect or Kinect For Windows device," << endl
-//		<< "motor / led / accel controls are not currently supported" << endl << endl;
-//    }
-    
-//	reportStream << "press p to switch between images and point cloud, rotate the point cloud with the mouse" << endl
-//	<< "using opencv threshold = " << bThreshWithOpenCV <<" (press spacebar)" << endl
-//	<< "set near threshold " << nearThreshold << " (press: + -)" << endl
-//	<< "set far threshold " << farThreshold << " (press: < >) num blobs found " << endl //contourFinder.nBlobs
-//	<< ", fps: " << ofGetFrameRate() << endl
-//	<< "press c to close the connection and o to open it again, connection is: " << kinect.isConnected() << endl;
+    fbo.draw(640,0); // changing the value of these arguments doesn't matter at all for whatever reason
 
-//    if(kinect.hasCamTiltControl()) {
-//    	reportStream << "press UP and DOWN to change the tilt angle: " << angle << " degrees" << endl
-//        << "press 1-5 & 0 to change the led mode" << endl;
-//    }
-    } // prior code commented out
+    ofSetColor(0,255,0);
     
-    reportStream << "RGB image on left," << endl << "depth image in upper right" << endl;
+    if(pickColorMode) ofDrawBitmapString("pick color mode", 290,240);
     
-	ofDrawBitmapString(reportStream.str(), 640, 450);
+    ofDrawBitmapString("kinect RGB image", 0, 480-10);
+    ofDrawBitmapString("depth image", 0, (480*0.25)-5);
+    ofDrawBitmapString("color selection", 0, (480*0.5)-5);
+    
+    ofDrawBitmapString("press p for points", 650, 480);
+    ofDrawBitmapString("press x for scribble", 650, 480-10);
+    ofDrawBitmapString("press l for lines", 650, 480-20);
+    ofDrawBitmapString("press f to pull all points forward", 850, 480-10);
+    ofDrawBitmapString("press d to push all points backward", 850, 480);
+    
+    if(sendOSC) ofDrawBitmapString("sending OSC data", 650,10);
+    
+    stringstream verticesReport;
+    verticesReport << faceMesh.getNumVertices() << " vertices recorded";
+    ofDrawBitmapString(verticesReport.str(), 640, 490);
+    
+    gui.draw();
     
 }
 
-void ofApp::drawPointCloud() {
-	int w = 640;
-	int h = 480;
-	ofMesh mesh;
-	mesh.setMode(OF_PRIMITIVE_POINTS);
-	int step = 2;
-	for(int y = 0; y < h; y += step) {
-		for(int x = 0; x < w; x += step) {
-			if(kinect.getDistanceAt(x, y) > 0) {
-                ofColor color1 = kinect.getColorAt(x,y) ;
-				mesh.addColor(color1);
-				mesh.addVertex(kinect.getWorldCoordinateAt(x, y));
-			}
-		}
-	}
-	glPointSize(5);
-	ofPushMatrix();
-	// the projected points are 'upside down' and 'backwards' 
-	ofScale(1, -1, -1);
-	ofTranslate(0, 0, -1000); // center the points a bit
-	ofEnableDepthTest();
-	mesh.drawVertices();
-	ofDisableDepthTest();
-	ofPopMatrix();
+void ofApp::recordFacePoint(float xTouch, float yTouch){
+    
+    ofVec3f origin; // defaults to origin without needing to be defined
+    int adjustedZValue = kinect.getWorldCoordinateAt(xTouch, yTouch)[2] - 700;
+    ofVec3f KinectVec(kinect.getWorldCoordinateAt(xTouch, yTouch)[0], kinect.getWorldCoordinateAt(xTouch, yTouch)[1], adjustedZValue);
+    
+    // only add point if it's reasonably close (at most 175 units(millimeters?)) to the origin
+    if (KinectVec.squareDistance(origin) < 30625){
+        
+        faceMesh.addVertex(KinectVec);
+        //    cout << "squareDistance calculated value is " << KinectVec.squareDistance(origin) << endl;
+        
+        cout << "recording a face point now at screen x, y = " << xTouch
+        << ", " << yTouch << " with Kinect real world x, y, z = "
+        << kinect.getWorldCoordinateAt(xTouch, yTouch)[0] << ", "
+        << kinect.getWorldCoordinateAt(xTouch, yTouch)[1] << ", "
+        << adjustedZValue << endl;
+        
+        ping.play();
+        
+        if (sendOSC) {
+            ofxOscMessage m;
+            m.setAddress("/vecPoints");
+            m.addFloatArg(KinectVec[0]);
+            m.addFloatArg(KinectVec[1]);
+            m.addFloatArg(KinectVec[2]);
+            sender.sendMessage(m, false);
+            cout << "sent OSC x y z "
+            << KinectVec[0] << " "
+            << KinectVec[1] << " "
+            << KinectVec[2] << endl;
+        }
+    }
 }
 
-void ofApp::recordFacePoint(int xTouch, int yTouch){
-    cout << "recording a face point now at:\n"
-    << "mouseX = " << mouseX << endl
-    << "mouseY = " << mouseY << endl;
-    
-    faceMesh.setMode(OF_PRIMITIVE_POINTS);
-    faceMesh.addVertex(kinect.getWorldCoordinateAt(mouseX, mouseY));
-    
-    
-    /*
-     locate the point labeled with the color marker using the RGB camera
-     and then append its real-world XYZ from the Kinect to a list
-     display the points on this list
-     */
-    
-    /*
-     call a function from here that finds the winning location point in the RGB image (closest color to the intended one, inside of an acceptable range)
-     then turn that RGB image location into the real-world XYZ image with mesh.addVertex(kinect.getWorldCoordinateAt(x, y)) or something like that
-     */
-    
-    
-}
-
-void ofApp::drawFaceCloud() { // function mostly copied from drawPointCloud()
-    
-    // should run only once when called because otherwise just keeps piling points on top of each other
-    
-    
+void ofApp::drawFaceCloud() {
     
     int w = 640;
     int h = 480;
-    faceMesh.setMode(OF_PRIMITIVE_POINTS);
-    int step = 2;
-//    for(int y = 0; y < h; y += step) {
-//        for(int x = 0; x < w; x += step) {
-//            if(kinect.getDistanceAt(x, y) > 0) {
-//                ofColor red(255, 0, 0); // draw face points in red, this is arbitrary
-//                faceMesh.addColor(red);
-//                faceMesh.addVertex(kinect.getWorldCoordinateAt(x, y));
-//            }
-//        }
-//    }
-    
-    ofColor red(255, 0, 0); // draw face points in red, this is arbitrary
-    glPointSize(5);
-    ofPushMatrix();
+    glPointSize(7);
     // the projected points are 'upside down' and 'backwards'
     ofScale(1, -1, -1);
-    ofTranslate(0, 0, -1000); // center the points a bit
     ofEnableDepthTest();
+    faceMesh.addColor(ofColor::red); // draw points in red, this is arbitrary
     faceMesh.drawVertices();
     ofDisableDepthTest();
-    ofPopMatrix();
+
 }
 
 void ofApp::exportFacePoints(){
-    //export a bunch of points as a JSON or OF mesh or whatever format is appropriate to a file
-    
+    string username = ofSystemTextBoxDialog("Whose face was touched?");
+    string faceSavePath = "/Users/rz/Documents/CMU/IACD/touchey_facey non-OF/faces/" + username + "face.ply";
+//    string faceSavePath = "/Users/rzachari/Desktop/faces" + username + "face.ply";
+
+    faceMesh.save(faceSavePath);
+    ofSystemAlertDialog("PLY mesh saved at " + faceSavePath);
 }
 
-//--------------------------------------------------------------
-void ofApp::exit() {
-//	kinect.setCameraTiltAngle(0); // zero the tilt on exit
-	kinect.close();
-	
-}
-
-//--------------------------------------------------------------
 void ofApp::keyPressed (int key) {
 	switch (key) {
             
-        // this is the keystroke that will be triggered by MakeyMakey
-        case 'a':
+        // to use mouse for debugging; records points painted over by the mouse
+        case 'b':
             recordFacePoint(mouseX, mouseY);
-            // maybe recordFacePoint() should take the current mouse position as an argument? Nah, just have the function query that itself probably
-            // it appears I changed my mind and wanted to pass the mouse position in.
             break;
             
-		case ' ':
-			faceMesh.clearVertices();
-			break;
-			
-		case'p':
-			bDrawPointCloud = !bDrawPointCloud;
-			break;
+        // record point from contour centroid position (for usual Makey Makey operation)
+        case 'a':
+            // the 640/3 and 480/3 are added to undo the translation the ROI does
+            recordFacePoint(contourFinder.blobs[0].boundingRect.getCenter().x+640/3, contourFinder.blobs[0].boundingRect.getCenter().y+480/3);
+            cout << "contourFinder.blobs[0].boundingRect.getCenter().x , y = " << contourFinder.blobs[0].boundingRect.getCenter().x << " ," << contourFinder.blobs[0].boundingRect.getCenter().y << endl;
+            break;
+        
+        {
+        // hit n to clear all recorded vertices and transmit OSC message to clear remote display
+        case 'n':
+            faceMesh.clearVertices();
+            if (sendOSC){
+                ofxOscMessage c;
+                c.setAddress("/clearMsg");
+                c.addBoolArg(true);
+                sender.sendMessage(c, false);
+            }
+            break;
+        }
             
-        case'f':
-            bDrawFaceCloud = !bDrawFaceCloud;
+//        case'c': // turn on the color selector
+//            paintColor = !paintColor;
+//            break;
+            
+//        case'=':
+//            colorThreshold++;
+//            break;
+//        
+//        case'-':
+//            colorThreshold--;
+//            break;
+            
+        {
+        // command to save the current face to a .ply file
+        case's':
+            exportFacePoints();
             break;
 			
-		case '>':
-		case '.':
-			farThreshold ++;
-			if (farThreshold > 255) farThreshold = 255;
-			break;
-			
-		case '<':
-		case ',':
-			farThreshold --;
-			if (farThreshold < 0) farThreshold = 0;
-			break;
-			
-		case '+':
-		case '=':
-			nearThreshold ++;
-			if (nearThreshold > 255) nearThreshold = 255;
-			break;
-			
-		case '-':
-			nearThreshold --;
-			if (nearThreshold < 0) nearThreshold = 0;
-			break;
-			
-		case 'w':
-			kinect.enableDepthNearValueWhite(!kinect.isDepthNearValueWhite());
-			break;
-			
-		case 'o':
-			kinect.setCameraTiltAngle(angle); // go back to prev tilt
-			kinect.open();
-			break;
-			
-		case 'c':
-			kinect.setCameraTiltAngle(0); // zero the tilt
-			kinect.close();
-			break;
-			
-		case '1':
-			kinect.setLed(ofxKinect::LED_GREEN);
-			break;
-			
-		case '2':
-			kinect.setLed(ofxKinect::LED_YELLOW);
-			break;
-			
-		case '3':
-			kinect.setLed(ofxKinect::LED_RED);
-			break;
-			
-		case '4':
-			kinect.setLed(ofxKinect::LED_BLINK_GREEN);
-			break;
-			
-		case '5':
-			kinect.setLed(ofxKinect::LED_BLINK_YELLOW_RED);
-			break;
-			
-		case '0':
-			kinect.setLed(ofxKinect::LED_OFF);
-			break;
+        }
+            
+        case',':
+            pickColorMode = !pickColorMode;
+            break;
+        
+        {
+        // remove any (-0, 0, 0) vertices on command
+        case'r':
+            int removeCounter = 0;
+            int numVert = faceMesh.getNumVertices();
+            for (int i = 0; i < numVert; i++){
+                if ( faceMesh.getVertex(i)[0] == 0 || faceMesh.getVertex(i)[1] == 0 || faceMesh.getVertex(i)[2] == 0){
+                    faceMesh.removeVertex(i);
+                    removeCounter++;
+                }
+            }
+            cout << "removed " << removeCounter << " vertices with zero value" << endl;
+            break;
+        }
+            
+        { // add a short string of vertices to help align the view
+        case 'v' :
+            ofVec3f v1(0,0,0);
+            ofVec3f v2(0,0,100);
+            ofVec3f v3(0,0,500);
+            ofVec3f v4(0,0,1000);
+            ofColor blue(0, 0, 255);
+            faceMesh.addColor(blue);
+            faceMesh.addVertex(v1);
+            faceMesh.addVertex(v2);
+            faceMesh.addVertex(v3);
+            faceMesh.addVertex(v4);
+            break;
+        }
+    
 			
 		case OF_KEY_UP:
 			angle++;
@@ -356,9 +309,73 @@ void ofApp::keyPressed (int key) {
 			if(angle<-30) angle=-30;
 			kinect.setCameraTiltAngle(angle);
 			break;
+            
+        case 'x':
+            faceMesh.setMode(OF_PRIMITIVE_LINE_STRIP_ADJACENCY);
+            break;
+            
+        case 'l':
+            faceMesh.setMode(OF_PRIMITIVE_LINES);
+            break;
+            
+            
+        case 'p':
+            faceMesh.setMode(OF_PRIMITIVE_POINTS);
+            break;
+            
+        {
+        // pull all points forward by a distance of 5
+        case 'f':
+            int numVert = faceMesh.getNumVertices();
+            for (int i = 0; i < numVert; i++){
+                int x = faceMesh.getVertex(i)[0];
+                int y = faceMesh.getVertex(i)[1];
+                int newZ = faceMesh.getVertex(i)[2] - 5;
+                ofVec3f pulledVec;
+                pulledVec.set (x, y, newZ);
+                faceMesh.setVertex(i, pulledVec);
+            }
+            break;
+        }
+            
+        {
+            // push all points backwards by a distance of 5
+        case 'd':
+            int numVert = faceMesh.getNumVertices();
+            for (int i = 0; i < numVert; i++){
+                int x = faceMesh.getVertex(i)[0];
+                int y = faceMesh.getVertex(i)[1];
+                int newZ = faceMesh.getVertex(i)[2] + 5;
+                ofVec3f pulledVec;
+                pulledVec.set (x, y, newZ);
+                faceMesh.setVertex(i, pulledVec);
+            }
+            break;
+        }
+            
+        case 'o':
+            sendOSC = !sendOSC;
+            break;
 	}
 }
 
+//--------------------------------------------------------------
+void ofApp::mousePressed(int x, int y, int button)
+{
+    
+    if(pickColorMode){
+        clickColor = kinect.getColorAt(mouseX, mouseY) ;
+        cout << "color at click = " << clickColor << endl;
+        rTarget = clickColor.r;
+        gTarget = clickColor.g;
+        bTarget = clickColor.b;
+        
+        cout << "rTarget = " << rTarget << endl;
+        cout << "gTarget = " << gTarget << endl;
+        cout << "bTarget = " << bTarget << endl;
+    }
+    
+}
 
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button)
@@ -366,13 +383,6 @@ void ofApp::mouseDragged(int x, int y, int button)
     
 }
 
-//--------------------------------------------------------------
-void ofApp::mousePressed(int x, int y, int button)
-{
-    cout << "click\n"; // just testing
-    // here: need to identify the color where the click happens
-    
-}
 
 //--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button)
@@ -395,3 +405,132 @@ void ofApp::windowResized(int w, int h)
 {
 
 }
+
+//--------------------------------------------------------------
+void ofApp::exit() {
+    //	kinect.setCameraTiltAngle(0); // zero the tilt on exit
+    kinect.close();
+    
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//////////////////////////////// OLD STUFF //////////////////////////////////////
+
+
+/*
+
+
+for (int y=160; y<373 ; y++) {
+    for (int x=213; x<426; x++) {
+
+        int rArrayIndex = (y*kinect.width*3) + (x*3);
+        int gArrayIndex = (y*kinect.width*3) + (x*3) + 1;
+        int bArrayIndex = (y*kinect.width*3) + (x*3) + 2;
+
+        // Now you can get and set values at location (x,y), e.g.:
+        unsigned char redValueAtXY   = colorData[rArrayIndex];
+        unsigned char greenValueAtXY = colorData[gArrayIndex];
+        unsigned char blueValueAtXY  = colorData[bArrayIndex];
+
+        float rDif = redValueAtXY - rTarget; // difference in reds
+        float gDif = greenValueAtXY - gTarget; // difference in greens
+        float bDif = blueValueAtXY - bTarget; // difference in blues
+
+        // The Pythagorean theorem gives us the Euclidean distance.
+        float colorDistance = sqrt (rDif*rDif + gDif*gDif + bDif*bDif);
+
+        if(colorDistance < fingerThreshVal){
+            fingerThresh.setColor(x, y, ofColor::white)
+        }
+        else fingerThresh.setColor(x, y, ofColor::black);
+
+    }
+}
+
+
+
+ 
+ 
+ 
+ 
+
+for (int y=160; y<373 ; y++) {
+    for (int x=213; x<426; x++) {
+
+        ofColor thisPixel;
+
+        // Now you can get and set values at location (x,y), e.g.:
+        unsigned char redValueAtXY   = kinect.getColorAt(x, y).r;
+        unsigned char greenValueAtXY = kinect.getColorAt(x, y).g;
+        unsigned char blueValueAtXY  = kinect.getColorAt(x, y).b;
+
+        float rDif = redValueAtXY - rTarget; // difference in reds
+        float gDif = greenValueAtXY - gTarget; // difference in greens
+        float bDif = blueValueAtXY - bTarget; // difference in blues
+
+        // The Pythagorean theorem gives us the Euclidean distance.
+        float colorDistance = sqrt (rDif*rDif + gDif*gDif + bDif*bDif);
+
+//                    if(colorDistance < fingerThreshVal){
+//                        fingerThresh.setColor(x, y, ofColor::white)
+//                    }
+//                    else fingerThresh.setColor(x, y, ofColor::black);
+
+    }
+}
+
+
+
+ 
+ 
+ 
+
+
+if(paintColor){
+    
+    int leastDistanceSoFar = 25; // start with a reasonably tight threshold
+    
+    // only scan center of image (only real area of interest since face will be in there) 640/3, 480/3, 640/3, 640/3
+    for (int y=160; y<373 ; y++) {
+        for (int x=213; x<426; x++) {
+            
+            ofColor thisPixelColor = kinect.getColorAt(x,y) ;
+            
+            float rDif = thisPixelColor.r - rTarget; // difference in reds
+            float gDif = thisPixelColor.g - gTarget; // difference in greens
+            float bDif = thisPixelColor.b - bTarget; // difference in blues
+            
+            // The Pythagorean theorem gives us the Euclidean distance.
+            float colorDistance =
+            sqrt (rDif*rDif + gDif*gDif + bDif*bDif);
+            
+            if(colorDistance < leastDistanceSoFar){
+                leastDistanceSoFar = colorDistance;
+                xOfPixelWithClosestColor = x;
+                yOfPixelWithClosestColor = y;
+            }
+        }
+    }
+}
+
+*/
