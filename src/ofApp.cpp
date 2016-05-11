@@ -1,6 +1,3 @@
-// 5/4/16 4:28pm added gui sliders, tweaked a bit for presentation
-// 5/5/16 5:27pm added ROI in center of image
-
 #include "ofApp.h"
 
 void ofApp::setup() {
@@ -29,11 +26,7 @@ void ofApp::setup() {
     faceMesh.setupIndicesAuto(); // vertices should index themselves automatically
 	
 	ofSetFrameRate(60);
-	
-	// zero the tilt on startup
-//	angle = 0;
-//	kinect.setCameraTiltAngle(angle);
-    
+
     ofBackground(100);
     
     angle = kinect.getCurrentCameraTiltAngle();
@@ -41,14 +34,12 @@ void ofApp::setup() {
     
     ping.load("pingSound.wav");
     
-    sender.setup(HOST, PORT);
+    sender.setup(HOST, PORT); // to send point data to helper application via OSC
     
     gui.setup();
     gui.add(colorThreshold.setup("colorThreshold", 50, 10, 100));
     gui.add(minContourArea.setup("minContourArea", 10, 1, 30));
     gui.add(maxContourArea.setup("maxContourArea", 100, 11, 200));
-
-
 
 }
 
@@ -96,14 +87,10 @@ void ofApp::update() {
             dilatedThresh = fingerThresh;
             dilatedThresh.dilate_3x3();
             
-//            ofxCvSetImageROI(dilatedThresh, cvRect(213, 160, 213, 160)); // trying to set ROI but didn't work
-            
             fingerThresh.setROI(roiMat);
             dilatedThresh.setROI(roiMat);
             
             contourFinder.findContours(dilatedThresh, minContourArea, maxContourArea, 1, FALSE);
-            
-            
         }
     }
 }
@@ -127,7 +114,6 @@ void ofApp::draw() {
     
     ofSetColor(255);
     ofNoFill();
-//    ofDrawRectangle(640/3, 480/3, 640/3, 640/3); // center rectangle
     ofDrawRectangle(roiMat);
     if(paintColor) ofDrawEllipse (xOfPixelWithClosestColor, yOfPixelWithClosestColor, 10,10);
     
@@ -160,10 +146,11 @@ void ofApp::draw() {
 void ofApp::recordFacePoint(float xTouch, float yTouch){
     
     ofVec3f origin; // defaults to origin without needing to be defined
-    int adjustedZValue = kinect.getWorldCoordinateAt(xTouch, yTouch)[2] - 700;
+    int adjustedZValue = kinect.getWorldCoordinateAt(xTouch, yTouch)[2] - 700; // user's face is approximately 700 units from Kinect so this pulls points close to the origin
     ofVec3f KinectVec(kinect.getWorldCoordinateAt(xTouch, yTouch)[0], kinect.getWorldCoordinateAt(xTouch, yTouch)[1], adjustedZValue);
     
     // only add point if it's reasonably close (at most 175 units(millimeters?)) to the origin
+    // (squareDistance is much faster to compute than distance)
     if (KinectVec.squareDistance(origin) < 30625){
         
         faceMesh.addVertex(KinectVec);
@@ -175,7 +162,7 @@ void ofApp::recordFacePoint(float xTouch, float yTouch){
         << kinect.getWorldCoordinateAt(xTouch, yTouch)[1] << ", "
         << adjustedZValue << endl;
         
-        ping.play();
+        ping.play(); // play sound if successful point recording
         
         if (sendOSC) {
             ofxOscMessage m;
@@ -209,7 +196,6 @@ void ofApp::drawFaceCloud() {
 void ofApp::exportFacePoints(){
     string username = ofSystemTextBoxDialog("Whose face was touched?");
     string faceSavePath = "/Users/rz/Documents/CMU/IACD/touchey_facey non-OF/faces/" + username + "face.ply";
-//    string faceSavePath = "/Users/rzachari/Desktop/faces" + username + "face.ply";
 
     faceMesh.save(faceSavePath);
     ofSystemAlertDialog("PLY mesh saved at " + faceSavePath);
@@ -226,8 +212,11 @@ void ofApp::keyPressed (int key) {
         // record point from contour centroid position (for usual Makey Makey operation)
         case 'a':
             // the 640/3 and 480/3 are added to undo the translation the ROI does
-            recordFacePoint(contourFinder.blobs[0].boundingRect.getCenter().x+640/3, contourFinder.blobs[0].boundingRect.getCenter().y+480/3);
-            cout << "contourFinder.blobs[0].boundingRect.getCenter().x , y = " << contourFinder.blobs[0].boundingRect.getCenter().x << " ," << contourFinder.blobs[0].boundingRect.getCenter().y << endl;
+            recordFacePoint(contourFinder.blobs[0].boundingRect.getCenter().x+640/3,
+                            contourFinder.blobs[0].boundingRect.getCenter().y+480/3);
+            cout << "contourFinder.blobs[0].boundingRect.getCenter().x , y = "
+            << contourFinder.blobs[0].boundingRect.getCenter().x
+            << " ," << contourFinder.blobs[0].boundingRect.getCenter().y << endl;
             break;
         
         {
@@ -242,19 +231,7 @@ void ofApp::keyPressed (int key) {
             }
             break;
         }
-            
-//        case'c': // turn on the color selector
-//            paintColor = !paintColor;
-//            break;
-            
-//        case'=':
-//            colorThreshold++;
-//            break;
-//        
-//        case'-':
-//            colorThreshold--;
-//            break;
-            
+           
         {
         // command to save the current face to a .ply file
         case's':
@@ -268,7 +245,7 @@ void ofApp::keyPressed (int key) {
             break;
         
         {
-        // remove any (-0, 0, 0) vertices on command
+        // remove any accumulated (-0, 0, 0) vertices on command
         case'r':
             int removeCounter = 0;
             int numVert = faceMesh.getNumVertices();
@@ -282,7 +259,7 @@ void ofApp::keyPressed (int key) {
             break;
         }
             
-        { // add a short string of vertices to help align the view
+        { // add a short string of vertices to help align the view if needed
         case 'v' :
             ofVec3f v1(0,0,0);
             ofVec3f v2(0,0,100);
@@ -412,125 +389,3 @@ void ofApp::exit() {
     kinect.close();
     
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//////////////////////////////// OLD STUFF //////////////////////////////////////
-
-
-/*
-
-
-for (int y=160; y<373 ; y++) {
-    for (int x=213; x<426; x++) {
-
-        int rArrayIndex = (y*kinect.width*3) + (x*3);
-        int gArrayIndex = (y*kinect.width*3) + (x*3) + 1;
-        int bArrayIndex = (y*kinect.width*3) + (x*3) + 2;
-
-        // Now you can get and set values at location (x,y), e.g.:
-        unsigned char redValueAtXY   = colorData[rArrayIndex];
-        unsigned char greenValueAtXY = colorData[gArrayIndex];
-        unsigned char blueValueAtXY  = colorData[bArrayIndex];
-
-        float rDif = redValueAtXY - rTarget; // difference in reds
-        float gDif = greenValueAtXY - gTarget; // difference in greens
-        float bDif = blueValueAtXY - bTarget; // difference in blues
-
-        // The Pythagorean theorem gives us the Euclidean distance.
-        float colorDistance = sqrt (rDif*rDif + gDif*gDif + bDif*bDif);
-
-        if(colorDistance < fingerThreshVal){
-            fingerThresh.setColor(x, y, ofColor::white)
-        }
-        else fingerThresh.setColor(x, y, ofColor::black);
-
-    }
-}
-
-
-
- 
- 
- 
- 
-
-for (int y=160; y<373 ; y++) {
-    for (int x=213; x<426; x++) {
-
-        ofColor thisPixel;
-
-        // Now you can get and set values at location (x,y), e.g.:
-        unsigned char redValueAtXY   = kinect.getColorAt(x, y).r;
-        unsigned char greenValueAtXY = kinect.getColorAt(x, y).g;
-        unsigned char blueValueAtXY  = kinect.getColorAt(x, y).b;
-
-        float rDif = redValueAtXY - rTarget; // difference in reds
-        float gDif = greenValueAtXY - gTarget; // difference in greens
-        float bDif = blueValueAtXY - bTarget; // difference in blues
-
-        // The Pythagorean theorem gives us the Euclidean distance.
-        float colorDistance = sqrt (rDif*rDif + gDif*gDif + bDif*bDif);
-
-//                    if(colorDistance < fingerThreshVal){
-//                        fingerThresh.setColor(x, y, ofColor::white)
-//                    }
-//                    else fingerThresh.setColor(x, y, ofColor::black);
-
-    }
-}
-
-
-
- 
- 
- 
-
-
-if(paintColor){
-    
-    int leastDistanceSoFar = 25; // start with a reasonably tight threshold
-    
-    // only scan center of image (only real area of interest since face will be in there) 640/3, 480/3, 640/3, 640/3
-    for (int y=160; y<373 ; y++) {
-        for (int x=213; x<426; x++) {
-            
-            ofColor thisPixelColor = kinect.getColorAt(x,y) ;
-            
-            float rDif = thisPixelColor.r - rTarget; // difference in reds
-            float gDif = thisPixelColor.g - gTarget; // difference in greens
-            float bDif = thisPixelColor.b - bTarget; // difference in blues
-            
-            // The Pythagorean theorem gives us the Euclidean distance.
-            float colorDistance =
-            sqrt (rDif*rDif + gDif*gDif + bDif*bDif);
-            
-            if(colorDistance < leastDistanceSoFar){
-                leastDistanceSoFar = colorDistance;
-                xOfPixelWithClosestColor = x;
-                yOfPixelWithClosestColor = y;
-            }
-        }
-    }
-}
-
-*/

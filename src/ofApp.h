@@ -38,12 +38,11 @@ public:
     ofColor clickColor;
 	
 	ofxCvGrayscaleImage grayImage; // grayscale depth image
-//    ofImage fingerThresh; // the thresholded image for the finger marked with a colored band
     ofxCvGrayscaleImage fingerThresh;
     ofxCvGrayscaleImage dilatedThresh; // the dialated thresholded image
     
     
-    // target color for color detection; values from a poorly lit sample attempt
+    // target color for color detection; approximates a yellow piece of paper
     int rTarget = 204;
     int gTarget = 183;
     int bTarget = 34;
@@ -51,7 +50,6 @@ public:
     int xOfPixelWithClosestColor;
     int yOfPixelWithClosestColor;
     
-//    int colorThreshold = 50;
     ofxFloatSlider colorThreshold;
     ofxFloatSlider minContourArea;
     ofxFloatSlider maxContourArea;
