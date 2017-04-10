@@ -9,6 +9,377 @@
 		<string>46</string>
 		<key>objects</key>
 		<dict>
+			<key>7EE89F4E2467A881CD0A4AEB</key>
+			<dict>
+				<key>explicitFileType</key>
+				<string>sourcecode.c.h</string>
+				<key>fileEncoding</key>
+				<string>30</string>
+				<key>isa</key>
+				<string>PBXFileReference</string>
+				<key>name</key>
+				<string>ofSSLManager.h</string>
+				<key>path</key>
+				<string>../../../../OF_v0.9.3/addons/ofxSSLManager/src/ofSSLManager.h</string>
+				<key>sourceTree</key>
+				<string>SOURCE_ROOT</string>
+			</dict>
+			<key>1E8BAE944B57D918C0D05BDF</key>
+			<dict>
+				<key>children</key>
+				<array>
+					<string>3DFDF378421DDE2285B6EAEB</string>
+					<string>7EE89F4E2467A881CD0A4AEB</string>
+				</array>
+				<key>isa</key>
+				<string>PBXGroup</string>
+				<key>name</key>
+				<string>src</string>
+				<key>sourceTree</key>
+				<string>&lt;group&gt;</string>
+			</dict>
+			<key>4BF286C389657955BDA84AA6</key>
+			<dict>
+				<key>children</key>
+				<array>
+					<string>1E8BAE944B57D918C0D05BDF</string>
+				</array>
+				<key>isa</key>
+				<string>PBXGroup</string>
+				<key>name</key>
+				<string>ofxSSLManager</string>
+				<key>sourceTree</key>
+				<string>&lt;group&gt;</string>
+			</dict>
+			<key>4E92933B3704A963F920D499</key>
+			<dict>
+				<key>fileRef</key>
+				<string>3DFDF378421DDE2285B6EAEB</string>
+				<key>isa</key>
+				<string>PBXBuildFile</string>
+			</dict>
+			<key>3DFDF378421DDE2285B6EAEB</key>
+			<dict>
+				<key>explicitFileType</key>
+				<string>sourcecode.cpp.cpp</string>
+				<key>fileEncoding</key>
+				<string>30</string>
+				<key>isa</key>
+				<string>PBXFileReference</string>
+				<key>name</key>
+				<string>ofSSLManager.cpp</string>
+				<key>path</key>
+				<string>../../../../OF_v0.9.3/addons/ofxSSLManager/src/ofSSLManager.cpp</string>
+				<key>sourceTree</key>
+				<string>SOURCE_ROOT</string>
+			</dict>
+			<key>B64A5CEA575D56FD62B939C3</key>
+			<dict>
+				<key>fileRef</key>
+				<string>5482D51D5B3E6A04BBAF21C3</string>
+				<key>isa</key>
+				<string>PBXBuildFile</string>
+			</dict>
+			<key>5482D51D5B3E6A04BBAF21C3</key>
+			<dict>
+				<key>explicitFileType</key>
+				<string>sourcecode.cpp.cpp</string>
+				<key>fileEncoding</key>
+				<string>30</string>
+				<key>isa</key>
+				<string>PBXFileReference</string>
+				<key>name</key>
+				<string>Settings.cpp</string>
+				<key>path</key>
+				<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/src/Settings.cpp</string>
+				<key>sourceTree</key>
+				<string>SOURCE_ROOT</string>
+			</dict>
+			<key>092735F0750A33C8AFAA72E1</key>
+			<dict>
+				<key>fileRef</key>
+				<string>06929BD5E2B5134B3A08AD43</string>
+				<key>isa</key>
+				<string>PBXBuildFile</string>
+			</dict>
+			<key>06929BD5E2B5134B3A08AD43</key>
+			<dict>
+				<key>explicitFileType</key>
+				<string>sourcecode.cpp.cpp</string>
+				<key>fileEncoding</key>
+				<string>30</string>
+				<key>isa</key>
+				<string>PBXFileReference</string>
+				<key>name</key>
+				<string>GmailSettings.cpp</string>
+				<key>path</key>
+				<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/src/GmailSettings.cpp</string>
+				<key>sourceTree</key>
+				<string>SOURCE_ROOT</string>
+			</dict>
+			<key>3981C3F356DC51BCA57C5756</key>
+			<dict>
+				<key>fileRef</key>
+				<string>3C4119C38B1562392AD6DE8C</string>
+				<key>isa</key>
+				<string>PBXBuildFile</string>
+			</dict>
+			<key>3C4119C38B1562392AD6DE8C</key>
+			<dict>
+				<key>explicitFileType</key>
+				<string>sourcecode.cpp.cpp</string>
+				<key>fileEncoding</key>
+				<string>30</string>
+				<key>isa</key>
+				<string>PBXFileReference</string>
+				<key>name</key>
+				<string>Credentials.cpp</string>
+				<key>path</key>
+				<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/src/Credentials.cpp</string>
+				<key>sourceTree</key>
+				<string>SOURCE_ROOT</string>
+			</dict>
+			<key>96F0A665B7EB6C25AE6BB373</key>
+			<dict>
+				<key>children</key>
+				<array>
+					<string>7D5DDD9BD4B3606B6B1F5484</string>
+					<string>3C4119C38B1562392AD6DE8C</string>
+					<string>06929BD5E2B5134B3A08AD43</string>
+					<string>5482D51D5B3E6A04BBAF21C3</string>
+				</array>
+				<key>isa</key>
+				<string>PBXGroup</string>
+				<key>name</key>
+				<string>src</string>
+				<key>sourceTree</key>
+				<string>&lt;group&gt;</string>
+			</dict>
+			<key>E3890BC04A14973C89AFD4D6</key>
+			<dict>
+				<key>fileRef</key>
+				<string>7D5DDD9BD4B3606B6B1F5484</string>
+				<key>isa</key>
+				<string>PBXBuildFile</string>
+			</dict>
+			<key>7D5DDD9BD4B3606B6B1F5484</key>
+			<dict>
+				<key>explicitFileType</key>
+				<string>sourcecode.cpp.cpp</string>
+				<key>fileEncoding</key>
+				<string>30</string>
+				<key>isa</key>
+				<string>PBXFileReference</string>
+				<key>name</key>
+				<string>Client.cpp</string>
+				<key>path</key>
+				<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/src/Client.cpp</string>
+				<key>sourceTree</key>
+				<string>SOURCE_ROOT</string>
+			</dict>
+			<key>90DCDE302C3779FE070497E0</key>
+			<dict>
+				<key>explicitFileType</key>
+				<string>sourcecode.c.h</string>
+				<key>fileEncoding</key>
+				<string>30</string>
+				<key>isa</key>
+				<string>PBXFileReference</string>
+				<key>name</key>
+				<string>Types.h</string>
+				<key>path</key>
+				<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/include/ofx/SMTP/Types.h</string>
+				<key>sourceTree</key>
+				<string>SOURCE_ROOT</string>
+			</dict>
+			<key>055B244D810E83D23F644D0D</key>
+			<dict>
+				<key>explicitFileType</key>
+				<string>sourcecode.c.h</string>
+				<key>fileEncoding</key>
+				<string>30</string>
+				<key>isa</key>
+				<string>PBXFileReference</string>
+				<key>name</key>
+				<string>Settings.h</string>
+				<key>path</key>
+				<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/include/ofx/SMTP/Settings.h</string>
+				<key>sourceTree</key>
+				<string>SOURCE_ROOT</string>
+			</dict>
+			<key>11EC0A24DEB8EDB5FEAE0D3F</key>
+			<dict>
+				<key>explicitFileType</key>
+				<string>sourcecode.c.h</string>
+				<key>fileEncoding</key>
+				<string>30</string>
+				<key>isa</key>
+				<string>PBXFileReference</string>
+				<key>name</key>
+				<string>GmailSettings.h</string>
+				<key>path</key>
+				<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/include/ofx/SMTP/GmailSettings.h</string>
+				<key>sourceTree</key>
+				<string>SOURCE_ROOT</string>
+			</dict>
+			<key>D251446E9F20B1EC10C21B4A</key>
+			<dict>
+				<key>explicitFileType</key>
+				<string>sourcecode.c.h</string>
+				<key>fileEncoding</key>
+				<string>30</string>
+				<key>isa</key>
+				<string>PBXFileReference</string>
+				<key>name</key>
+				<string>Events.h</string>
+				<key>path</key>
+				<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/include/ofx/SMTP/Events.h</string>
+				<key>sourceTree</key>
+				<string>SOURCE_ROOT</string>
+			</dict>
+			<key>FD06E3575A438C35F2D610AE</key>
+			<dict>
+				<key>explicitFileType</key>
+				<string>sourcecode.c.h</string>
+				<key>fileEncoding</key>
+				<string>30</string>
+				<key>isa</key>
+				<string>PBXFileReference</string>
+				<key>name</key>
+				<string>Credentials.h</string>
+				<key>path</key>
+				<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/include/ofx/SMTP/Credentials.h</string>
+				<key>sourceTree</key>
+				<string>SOURCE_ROOT</string>
+			</dict>
+			<key>9603B3B569314B1A074E019A</key>
+			<dict>
+				<key>children</key>
+				<array>
+					<string>DADE8DF8A7E99663ECBCB898</string>
+					<string>FD06E3575A438C35F2D610AE</string>
+					<string>D251446E9F20B1EC10C21B4A</string>
+					<string>11EC0A24DEB8EDB5FEAE0D3F</string>
+					<string>055B244D810E83D23F644D0D</string>
+					<string>90DCDE302C3779FE070497E0</string>
+				</array>
+				<key>isa</key>
+				<string>PBXGroup</string>
+				<key>name</key>
+				<string>SMTP</string>
+				<key>sourceTree</key>
+				<string>&lt;group&gt;</string>
+			</dict>
+			<key>7AE1CA28212FF05E85AE4592</key>
+			<dict>
+				<key>children</key>
+				<array>
+					<string>9603B3B569314B1A074E019A</string>
+				</array>
+				<key>isa</key>
+				<string>PBXGroup</string>
+				<key>name</key>
+				<string>ofx</string>
+				<key>sourceTree</key>
+				<string>&lt;group&gt;</string>
+			</dict>
+			<key>EE7BD4CF72D466B354923799</key>
+			<dict>
+				<key>children</key>
+				<array>
+					<string>7AE1CA28212FF05E85AE4592</string>
+				</array>
+				<key>isa</key>
+				<string>PBXGroup</string>
+				<key>name</key>
+				<string>include</string>
+				<key>sourceTree</key>
+				<string>&lt;group&gt;</string>
+			</dict>
+			<key>F75C3DD338F598F61FE2F8DA</key>
+			<dict>
+				<key>children</key>
+				<array>
+					<string>EE7BD4CF72D466B354923799</string>
+					<string>96F0A665B7EB6C25AE6BB373</string>
+				</array>
+				<key>isa</key>
+				<string>PBXGroup</string>
+				<key>name</key>
+				<string>ofxSMTP</string>
+				<key>sourceTree</key>
+				<string>&lt;group&gt;</string>
+			</dict>
+			<key>6B803D146F1D7569587F8446</key>
+			<dict>
+				<key>children</key>
+				<array>
+					<string>F75C3DD338F598F61FE2F8DA</string>
+				</array>
+				<key>isa</key>
+				<string>PBXGroup</string>
+				<key>name</key>
+				<string>libs</string>
+				<key>sourceTree</key>
+				<string>&lt;group&gt;</string>
+			</dict>
+			<key>DADE8DF8A7E99663ECBCB898</key>
+			<dict>
+				<key>explicitFileType</key>
+				<string>sourcecode.c.h</string>
+				<key>fileEncoding</key>
+				<string>30</string>
+				<key>isa</key>
+				<string>PBXFileReference</string>
+				<key>name</key>
+				<string>Client.h</string>
+				<key>path</key>
+				<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/include/ofx/SMTP/Client.h</string>
+				<key>sourceTree</key>
+				<string>SOURCE_ROOT</string>
+			</dict>
+			<key>7279EF994C860F1EAE081AB0</key>
+			<dict>
+				<key>children</key>
+				<array>
+					<string>A84C289C28EBB252EC4CBDF3</string>
+				</array>
+				<key>isa</key>
+				<string>PBXGroup</string>
+				<key>name</key>
+				<string>src</string>
+				<key>sourceTree</key>
+				<string>&lt;group&gt;</string>
+			</dict>
+			<key>088B19A331A0376F1AC19527</key>
+			<dict>
+				<key>children</key>
+				<array>
+					<string>7279EF994C860F1EAE081AB0</string>
+					<string>6B803D146F1D7569587F8446</string>
+				</array>
+				<key>isa</key>
+				<string>PBXGroup</string>
+				<key>name</key>
+				<string>ofxSMTP</string>
+				<key>sourceTree</key>
+				<string>&lt;group&gt;</string>
+			</dict>
+			<key>A84C289C28EBB252EC4CBDF3</key>
+			<dict>
+				<key>explicitFileType</key>
+				<string>sourcecode.c.h</string>
+				<key>fileEncoding</key>
+				<string>30</string>
+				<key>isa</key>
+				<string>PBXFileReference</string>
+				<key>name</key>
+				<string>ofxSMTP.h</string>
+				<key>path</key>
+				<string>../../../../OF_v0.9.3/addons/ofxSMTP/src/ofxSMTP.h</string>
+				<key>sourceTree</key>
+				<string>SOURCE_ROOT</string>
+			</dict>
 			<key>7E47FA406B6FC61E876F9ADB</key>
 			<dict>
 				<key>explicitFileType</key>
@@ -4914,6 +5285,8 @@
 					<string>9683228C705CA3FF4F2EA945</string>
 					<string>A0B90D3B0ADB9C1716816714</string>
 					<string>E6053AB7FEC63D5F83825B88</string>
+					<string>088B19A331A0376F1AC19527</string>
+					<string>4BF286C389657955BDA84AA6</string>
 				</array>
 				<key>isa</key>
 				<string>PBXGroup</string>
@@ -5127,6 +5500,14 @@
 						<string>../../../../OF_v0.9.3/addons/ofxOsc/libs/oscpack/src/ip/win32</string>
 						<string>../../../../OF_v0.9.3/addons/ofxOsc/libs/oscpack/src/osc</string>
 						<string>../../../../OF_v0.9.3/addons/ofxOsc/src</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/include</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/include/ofx</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/include/ofx/SMTP</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/src</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/src</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSSLManager/src</string>
 					</array>
 					<key>CONFIGURATION_BUILD_DIR</key>
 					<string>$(SRCROOT)/bin/</string>
@@ -5244,6 +5625,14 @@
 						<string>../../../../OF_v0.9.3/addons/ofxOsc/libs/oscpack/src/ip/win32</string>
 						<string>../../../../OF_v0.9.3/addons/ofxOsc/libs/oscpack/src/osc</string>
 						<string>../../../../OF_v0.9.3/addons/ofxOsc/src</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/include</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/include/ofx</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/include/ofx/SMTP</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/src</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/src</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSSLManager/src</string>
 					</array>
 					<key>CONFIGURATION_BUILD_DIR</key>
 					<string>$(SRCROOT)/bin/</string>
@@ -5338,6 +5727,11 @@
 					<string>B997227575EAB47C55021F44</string>
 					<string>5A0F242D75F449AD36D66C8E</string>
 					<string>AEE586FD77E30565B2A74AED</string>
+					<string>E3890BC04A14973C89AFD4D6</string>
+					<string>3981C3F356DC51BCA57C5756</string>
+					<string>092735F0750A33C8AFAA72E1</string>
+					<string>B64A5CEA575D56FD62B939C3</string>
+					<string>4E92933B3704A963F920D499</string>
 				</array>
 				<key>isa</key>
 				<string>PBXSourcesBuildPhase</string>
@@ -5481,6 +5875,14 @@
 						<string>../../../../OF_v0.9.3/addons/ofxOsc/libs/oscpack/src/ip/win32</string>
 						<string>../../../../OF_v0.9.3/addons/ofxOsc/libs/oscpack/src/osc</string>
 						<string>../../../../OF_v0.9.3/addons/ofxOsc/src</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/include</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/include/ofx</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/include/ofx/SMTP</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/src</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/src</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSSLManager/src</string>
 					</array>
 					<key>COMBINE_HIDPI_IMAGES</key>
 					<string>YES</string>
@@ -5588,6 +5990,14 @@
 						<string>../../../../OF_v0.9.3/addons/ofxOsc/libs/oscpack/src/ip/win32</string>
 						<string>../../../../OF_v0.9.3/addons/ofxOsc/libs/oscpack/src/osc</string>
 						<string>../../../../OF_v0.9.3/addons/ofxOsc/src</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/include</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/include/ofx</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/include/ofx/SMTP</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/libs/ofxSMTP/src</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSMTP/src</string>
+						<string>../../../../OF_v0.9.3/addons/ofxSSLManager/src</string>
 					</array>
 					<key>COMBINE_HIDPI_IMAGES</key>
 					<string>YES</string>

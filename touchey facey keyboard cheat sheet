@@ -1,0 +1,47 @@
+*** Touchey Facey keyboard commands! ***
+2/10/17
+
+
+- useful commands - 
+
+c toggles pickColorMode
+
+a records a point at the target centroid's current position
+
+g sends gmail message with attached .ply to the email address that's entered
+
+n clears recorded vertices in the main capture as well as via osc
+
+
+
+- useful commands for Facey Receiver -
+
+= moves the camera one way
+
+- moves the camera the other way
+
+
+
+- everything else -
+
+e crashes the software
+
+b records a point at the mouse's current position
+
+s saves the current mesh as a .ply
+
+r removes any vertices at (0,0,0)
+
+v adds a short string of vertices to help with alignment
+
+x adds lines with "strip adjacency" connecting vertices
+
+l adds lines connecting vertices
+
+p makes vertices back into points
+
+f pulls points forward by a distance of 5 units
+
+b pushes points backwards by 5 units
+
+o toggles sending osc data

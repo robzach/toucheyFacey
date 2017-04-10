@@ -1,6 +1,12 @@
 <group>
-	<colorThreshold>40.15</colorThreshold>
-	<minContourArea>5.495</minContourArea>
+	<colorThreshold>14</colorThreshold>
+	<minContourArea>10</minContourArea>
 	<maxContourArea>100</maxContourArea>
 <group/>
+<minBrightness>161.925</minBrightness>
+	<maxBrightness>255</maxBrightness>
+	<minSaturation>156.825</minSaturation>
+	<maxSaturation>255</maxSaturation>
+	<send_OSC_data>1</send_OSC_data>
+	<HSB_mode>1</HSB_mode>
 </group>
