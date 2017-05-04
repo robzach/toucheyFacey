@@ -1,26 +1,30 @@
 *** Touchey Facey setup checklist ***
-4/10/17
+5/4/17
 
 * camera
 - Kinect 3D camera, 1st generation
 - Kinect power supply
-- camera mount
-- hex wrench, if needed
 - "liquid chalk" marker of non-body color(s)
-- white background paper for floor?
+
+
+* chair setup
+- camera mount to mate with chair
+- hex wrench, if needed
 - Touchey Facey chair
+- rolling height-adjustable stool
 
 * touch sensor
 - Makey Makey
 - alligator wires long enough to reach all parties concerned
 - copper hand-contacting fabric
-- moist towel to keep finger moist if needed for conduction
+- alternatively: two conductive bracelets
 
 * computer
 - machine running toucheyFacey.app
 - also running faceyReceiver.app
 - external monitor to display Facey Receiver window
 - video cable, adapter, etc., as needed for external monitor
+- 2 USB extension cables, or 1 and a hub (for Makey Makey and Kinect)
 
 * power
 - power for laptop running software
